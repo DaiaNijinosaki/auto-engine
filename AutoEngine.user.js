@@ -398,7 +398,9 @@ const studyreport = function() {
                 if ( needIStudyAgain ) {
                     studyAgainElem.click();
                 } else {
-                    myPageElem.click();
+                    const sound = new Audio();
+                    sound.play();
+                    sound.addEventListener('ended', () => {myPageElem.click();});
                 };
             } else {
                 console.error(xmlHttpRequest.statusText);
