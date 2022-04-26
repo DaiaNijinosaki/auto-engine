@@ -398,7 +398,7 @@ const studyreport = function() {
                 if ( needIStudyAgain ) {
                     studyAgainElem.click();
                 } else {
-                    const sound = new Audio();
+                    const sound = new Audio('https://raw.githubusercontent.com/DaiaNijinosaki/auto-engine/master/accomplished.mp3');
                     sound.play();
                     sound.addEventListener('ended', () => {myPageElem.click();});
                 };
