@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AutoEngine
 // @namespace    http://tampermonkey.net/
-// @version      1
+// @version      2
 // @description  Auto farming script for Word Engine
 // @author       Yumekawa Dev
 // @match        https://www.wordengine.jp/flashwords.html*
@@ -13,12 +13,28 @@
 
 'use strict';
 
-// function that run when flashwords.html
+// function that run in flashwords.html
 const flashwords = function() {
-    const sleep = ms => new Promise( resolve => setTimeout(resolve, ms) );
-    let time = 664;
-    let timeWrong = 1500
+
+    // =======================================================
+    // edit value "false" to "true" to enable full speed mode
+    // !!! WARNING !!!
+    // enabling this feature may be dangerous because it is said that
+    // the teachers can check the answer time of each students;
+    // it means that they will ban you
+    const enableFullSpeedMode = false;
+    // =======================================================
+
+    // =======================================================
+    // edit value to adjust the answer interval in milliseconds
+    // ( it must be 664 ms at least; the default value is 664 )
+    const time = 664;
+    // =======================================================
+
+    const timeWrong = 1500
     let interrupt = false;
+
+    const sleep = ms => new Promise( resolve => setTimeout(resolve, ms) );
 
     const main = function() {
         const func = async function() {
@@ -35,6 +51,15 @@ const flashwords = function() {
                 if ( interrupt ) break;
                 let answeredType = '';
 
+                console.log(questionCount + 1 + ' of 15');
+                if ( document.getElementsByClassName('question-pagination')[0].innerText !== questionCount + 1 + ' of 15' ) {
+                    const answerList = document.getElementsByClassName('answer-list');
+                    answerList[( questionCount - 1 ) * 3 + 0].click();
+                    answerList[( questionCount - 1 ) * 3 + 1].click();
+                    answerList[( questionCount - 1 ) * 3 + 2].click();
+                    document.getElementsByClassName('close-btn')[0].click();
+                };
+
                 let question = document.getElementsByClassName('question-wrapper')[questionCount].innerText;
                 let answerList = document.getElementsByClassName('answer-list');
 
@@ -46,49 +71,53 @@ const flashwords = function() {
                     currentAnswerList.push(answerList[questionCount * 3 + 0]);
                     currentAnswerList.push(answerList[questionCount * 3 + 1]);
                     currentAnswerList.push(answerList[questionCount * 3 + 2]);
+
+                    let counter = 0;
+
                     for ( const answer of currentAnswerList ) {
                         let answered = false;
-                        let counter = 0;
 
                         let questionRegExp = new RegExp("correct='true' seq='.' sound_url=''>" + answer.innerText, 'g');
                         let questionMatches = response.match(questionRegExp);
+//                         if ( !questionMatches ) {
+//                             console.log("I don't know that.");
+//                             console.log('#########################');
+//                             answerList[questionCount * 3 + 0].click();
+//                             answerList[questionCount * 3 + 1].click();
+//                             answerList[questionCount * 3 + 2].click();
+//                             await sleep(timeWrong);
+//                             break;
+//                         }
+                        if ( questionMatches ) {
+                            for ( const match of questionMatches ) {
+                                let index = response.indexOf(match);
 
-                        if ( !questionMatches ) {
+                                while ( index !== -1 ) {
+                                    if ( index !== -1 ) {
+                                        answerList[questionCount * 3 + counter].click();
+                                        console.log('Answer: ' + answer.innerText);
+                                        console.log('#########################');
+                                        answered = true;
+                                        await sleep( enableFullSpeedMode ? time : time + 500 + Math.random() * 1000 );
+                                        break;
+                                    }
+                                    index = response.indexOf(match, index + 1);
+                                };
+                                break;
+                            };
+                        } else if ( counter < 2 ) {
+                            counter++;
+                            continue;
+                        } else {
                             console.log("I don't know that.");
                             console.log('#########################');
                             answerList[questionCount * 3 + 0].click();
                             answerList[questionCount * 3 + 1].click();
                             answerList[questionCount * 3 + 2].click();
                             await sleep(timeWrong);
-                            break;
-                        }
-
-                        for ( const match of questionMatches ) {
-                            let index = response.indexOf(match);
-
-                            while ( index !== -1 ) {
-                                if ( index !== -1 ) {
-                                    answerList[questionCount * 3 + counter].click();
-                                    console.log('Answer: ' + answer.innerText);
-                                    console.log('#########################');
-                                    answered = true;
-                                    await sleep(time);
-                                    break;
-                                }
-                                index = response.indexOf(match, index + 1);
-                            };
                             break;
                         };
                         if ( answered ) break;
-                        if ( counter === 2 ) {
-                            console.log("I don't know that.");
-                            console.log('#########################');
-                            answerList[questionCount * 3 + 0].click();
-                            answerList[questionCount * 3 + 1].click();
-                            answerList[questionCount * 3 + 2].click();
-                            await sleep(timeWrong);
-                            break;
-                        }
                         counter++;
                     }
                     continue;
@@ -176,7 +205,7 @@ const flashwords = function() {
                 console.log('#########################');
 
                 let sleepTime;
-                if ( answeredType === 'found' ) sleepTime = time;
+                if ( answeredType === 'found' ) sleepTime = enableFullSpeedMode ? time : time + 500 + Math.random() * 1000 ;
                 if ( answeredType === 'notFound' ) sleepTime = timeWrong;
 
                 await sleep(sleepTime);
@@ -209,7 +238,7 @@ const flashwords = function() {
     });
 };
 
-// function that run when my_page.html
+// function that run in my_page.html
 const mypage = function() {
     const myPageElem = document.getElementsByClassName('my-page')[0];
     const html = `
@@ -320,7 +349,7 @@ const mypage = function() {
             xmlHttpRequest.onload = (e) => {
             if ( xmlHttpRequest.readyState === 4 ) {
                 if ( xmlHttpRequest.status === 200 ) {
-                    console.log('Set SP ID to 59');
+                    console.log('Set SP ID to 59 (General English)');
                     resolve();
                 } else {
                     console.error(xmlHttpRequest.statusText);
@@ -376,7 +405,7 @@ const mypage = function() {
     });
 };
 
-// function that run when studyreport.html
+// function that run in studyreport.html
 const studyreport = function() {
     const xmlHttpRequest = new XMLHttpRequest();
 
