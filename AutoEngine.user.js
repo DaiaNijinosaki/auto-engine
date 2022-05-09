@@ -26,6 +26,13 @@ const flashwords = function() {
     // =======================================================
 
     // =======================================================
+    // edit value to set minimum and maximum answer time in milliseconds
+    // AutoEngine will take time random between min and max answer time
+    const minAnswerTime = 500;
+    const maxAnswerTime = 1500;
+    // =======================================================
+
+    // =======================================================
     // edit value to adjust the answer interval in milliseconds
     // ( it must be 664 ms at least; the default value is 664 )
     const time = 664;
@@ -407,6 +414,7 @@ const mypage = function() {
 
 // function that run in studyreport.html
 const studyreport = function() {
+    const sound = new Audio('https://raw.githubusercontent.com/DaiaNijinosaki/auto-engine/master/accomplished.mp3');
     const xmlHttpRequest = new XMLHttpRequest();
 
     xmlHttpRequest.open('GET', 'https://www.wordengine.jp/vengine/api/goalcorrectresponse/showCorrectResponseGoal?weeksBeforeFrom=0', true);
@@ -427,7 +435,6 @@ const studyreport = function() {
                 if ( needIStudyAgain ) {
                     studyAgainElem.click();
                 } else {
-                    const sound = new Audio('https://raw.githubusercontent.com/DaiaNijinosaki/auto-engine/master/accomplished.mp3');
                     sound.play();
                     sound.addEventListener('ended', () => {myPageElem.click();});
                 };
